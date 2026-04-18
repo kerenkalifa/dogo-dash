@@ -1,17 +1,19 @@
 import { Home, PawPrint, BarChart3, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-
-const tabs = [
-  { path: '/', icon: Home, label: 'Home' },
-  { path: '/dogs', icon: PawPrint, label: 'Dogs' },
-  { path: '/stats', icon: BarChart3, label: 'Stats' },
-  { path: '/profile', icon: User, label: 'Profile' },
-];
+import { useLanguage } from '@/hooks/useLanguage';
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const tabs = [
+    { path: '/', icon: Home, label: t('nav_home') },
+    { path: '/dogs', icon: PawPrint, label: t('nav_dogs') },
+    { path: '/stats', icon: BarChart3, label: t('nav_stats') },
+    { path: '/profile', icon: User, label: t('nav_profile') },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t-2 border-primary/20 safe-area-bottom">

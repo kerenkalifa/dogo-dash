@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Play, Plus, PawPrint, Clock } from 'lucide-react';
+import { Play, Plus, PawPrint, Clock, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -10,16 +20,19 @@ import WalkTimer from '@/components/WalkTimer';
 import type { Tables } from '@/integrations/supabase/types';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const Index = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [dogs, setDogs] = useState<Tables<'dogs'>[]>([]);
   const [recentWalks, setRecentWalks] = useState<(Tables<'walks'> & { dogs?: Tables<'dogs'> })[]>([]);
   const [showDogPicker, setShowDogPicker] = useState(false);
   const [selectedDogs, setSelectedDogs] = useState<string[]>([]);
   const [activeWalk, setActiveWalk] = useState<{ startTime: Date; dogIds: string[] } | null>(null);
+  const [walkToDelete, setWalkToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -43,7 +56,7 @@ const Index = () => {
 
   const handleStartWalk = () => {
     if (dogs.length === 0) {
-      toast({ title: "Add a dog first!", description: "Go to the Dogs tab to add your pups.", variant: "destructive" });
+      toast({ title: t('add_dog_first'), description: t('add_dog_first_desc'), variant: "destructive" });
       return;
     }
     setSelectedDogs([]);
@@ -52,7 +65,7 @@ const Index = () => {
 
   const confirmStartWalk = () => {
     if (selectedDogs.length === 0) {
-      toast({ title: "Pick at least one dog! 🐕", variant: "destructive" });
+      toast({ title: t('pick_dog'), variant: "destructive" });
       return;
     }
     setShowDogPicker(false);
@@ -75,7 +88,15 @@ const Index = () => {
     }
 
     setActiveWalk(null);
-    toast({ title: "Walk saved! 🎉", description: `${Math.floor(durationSeconds / 60)} min walk logged.` });
+    toast({ title: t('walk_saved'), description: `${Math.floor(durationSeconds / 60)} ${t('min_walk_logged')}` });
+    fetchRecentWalks();
+  };
+
+  const confirmDeleteWalk = async () => {
+    if (!walkToDelete) return;
+    await supabase.from('walks').delete().eq('id', walkToDelete);
+    setWalkToDelete(null);
+    toast({ title: t('walk_deleted') });
     fetchRecentWalks();
   };
 
@@ -96,8 +117,8 @@ const Index = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-black text-foreground">Dogo 🐾</h1>
-          <p className="text-sm font-bold text-muted-foreground">Ready to walk?</p>
+          <h1 className="text-3xl font-black text-foreground">{t('home_title')}</h1>
+          <p className="text-sm font-bold text-muted-foreground">{t('home_subtitle')}</p>
         </div>
         <button
           onClick={() => navigate('/manual-entry')}
@@ -118,19 +139,19 @@ const Index = () => {
           <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 group-hover:scale-110 transition-transform">
             <Play size={36} className="text-primary-foreground ml-1" />
           </div>
-          <span className="text-xl font-black text-foreground">Start Walk</span>
-          <span className="text-sm text-muted-foreground font-bold">Tap to begin tracking</span>
+          <span className="text-xl font-black text-foreground">{t('start_walk')}</span>
+          <span className="text-sm text-muted-foreground font-bold">{t('start_walk_hint')}</span>
         </button>
       )}
 
       {/* Recent Walks */}
       <div className="mt-6">
-        <h2 className="text-lg font-black text-foreground mb-3">Recent Walks</h2>
+        <h2 className="text-lg font-black text-foreground mb-3">{t('recent_walks')}</h2>
         {recentWalks.length === 0 ? (
           <div className="glass rounded-2xl p-6 text-center text-muted-foreground">
             <Clock size={30} className="mx-auto mb-2 opacity-50" />
-            <p className="font-bold">No walks yet</p>
-            <p className="text-sm">Start your first walk! 🏃</p>
+            <p className="font-bold">{t('no_walks')}</p>
+            <p className="text-sm">{t('no_walks_hint')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -140,10 +161,17 @@ const Index = () => {
                   <PawPrint size={18} className="text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate">{(walk as any).dogs?.name || 'Unknown'}</p>
+                  <p className="font-bold text-sm truncate">{(walk as any).dogs?.name || t('unknown')}</p>
                   <p className="text-xs text-muted-foreground font-semibold">{format(new Date(walk.date), 'MMM d, yyyy')}</p>
                 </div>
                 <span className="text-sm font-black text-primary">{formatDuration(walk.duration)}</span>
+                <button
+                  onClick={() => setWalkToDelete(walk.id)}
+                  className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center hover:bg-destructive/10 transition-colors"
+                  aria-label={t('delete')}
+                >
+                  <Trash2 size={14} className="text-muted-foreground" />
+                </button>
               </div>
             ))}
           </div>
@@ -154,8 +182,8 @@ const Index = () => {
       <Dialog open={showDogPicker} onOpenChange={setShowDogPicker}>
         <DialogContent className="rounded-2xl max-w-sm mx-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black">Who's walking? 🐕</DialogTitle>
-            <DialogDescription>Select the dogs joining this walk</DialogDescription>
+            <DialogTitle className="text-xl font-black">{t('whos_walking')}</DialogTitle>
+            <DialogDescription>{t('pick_dogs_desc')}</DialogDescription>
           </DialogHeader>
           <DogSelector dogs={dogs} selected={selectedDogs} onToggle={toggleDog} />
           <Button
@@ -163,10 +191,29 @@ const Index = () => {
             disabled={selectedDogs.length === 0}
             className="w-full h-12 rounded-xl font-black text-base"
           >
-            Let's Go! ({selectedDogs.length} selected)
+            {t('lets_go')} ({selectedDogs.length} {t('selected')})
           </Button>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!walkToDelete} onOpenChange={(open) => !open && setWalkToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-black">{t('delete_walk_q')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('delete_walk_desc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl font-bold">{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteWalk}
+              className="rounded-xl font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
