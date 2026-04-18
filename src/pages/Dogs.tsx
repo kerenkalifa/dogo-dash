@@ -7,10 +7,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const Dogs = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [dogs, setDogs] = useState<Tables<'dogs'>[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingDog, setEditingDog] = useState<Tables<'dogs'> | null>(null);
@@ -48,10 +50,10 @@ const Dogs = () => {
 
     if (editingDog) {
       await supabase.from('dogs').update({ name, breed: breed || null, image_url: imageUrl || null }).eq('id', editingDog.id);
-      toast({ title: "Dog updated! 🐾" });
+      toast({ title: t('dog_updated') });
     } else {
       await supabase.from('dogs').insert({ user_id: user.id, name, breed: breed || null, image_url: imageUrl || null });
-      toast({ title: "Dog added! 🎉" });
+      toast({ title: t('dog_added') });
     }
     setShowForm(false);
     fetchDogs();
@@ -59,14 +61,14 @@ const Dogs = () => {
 
   const handleDelete = async (id: string) => {
     await supabase.from('dogs').delete().eq('id', id);
-    toast({ title: "Dog removed" });
+    toast({ title: t('dog_removed') });
     fetchDogs();
   };
 
   return (
     <div className="pb-24 px-4 pt-6 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-black text-foreground">My Dogs 🐕</h1>
+        <h1 className="text-3xl font-black text-foreground">{t('my_dogs')}</h1>
         <Button onClick={openAdd} size="icon" className="rounded-xl h-10 w-10">
           <Plus size={20} />
         </Button>
@@ -75,10 +77,10 @@ const Dogs = () => {
       {dogs.length === 0 ? (
         <div className="glass rounded-2xl p-8 text-center">
           <PawPrint size={48} className="mx-auto mb-3 text-primary opacity-60" />
-          <p className="font-black text-lg">No dogs yet</p>
-          <p className="text-sm text-muted-foreground font-bold mb-4">Add your first pup!</p>
+          <p className="font-black text-lg">{t('no_dogs')}</p>
+          <p className="text-sm text-muted-foreground font-bold mb-4">{t('add_first_pup')}</p>
           <Button onClick={openAdd} className="rounded-xl font-bold">
-            <Plus size={16} /> Add Dog
+            <Plus size={16} /> {t('add_dog')}
           </Button>
         </div>
       ) : (
@@ -112,15 +114,15 @@ const Dogs = () => {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="rounded-2xl max-w-sm mx-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black">{editingDog ? 'Edit Dog' : 'Add Dog'} 🐾</DialogTitle>
-            <DialogDescription>{editingDog ? 'Update your dog\'s info' : 'Tell us about your pup'}</DialogDescription>
+            <DialogTitle className="text-xl font-black">{editingDog ? t('edit_dog') : t('add_dog')} 🐾</DialogTitle>
+            <DialogDescription>{editingDog ? t('edit_dog_desc') : t('add_dog_desc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Input placeholder="Name *" value={name} onChange={e => setName(e.target.value)} className="h-12 rounded-xl font-semibold" />
-            <Input placeholder="Breed (optional)" value={breed} onChange={e => setBreed(e.target.value)} className="h-12 rounded-xl font-semibold" />
-            <Input placeholder="Image URL (optional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="h-12 rounded-xl font-semibold" />
+            <Input placeholder={t('name_required')} value={name} onChange={e => setName(e.target.value)} className="h-12 rounded-xl font-semibold" />
+            <Input placeholder={t('breed_optional')} value={breed} onChange={e => setBreed(e.target.value)} className="h-12 rounded-xl font-semibold" />
+            <Input placeholder={t('image_url_optional')} value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="h-12 rounded-xl font-semibold" />
             <Button onClick={handleSave} disabled={!name.trim()} className="w-full h-12 rounded-xl font-black text-base">
-              {editingDog ? 'Save Changes' : 'Add Dog'}
+              {editingDog ? t('save_changes') : t('add_dog')}
             </Button>
           </div>
         </DialogContent>
