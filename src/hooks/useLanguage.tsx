@@ -89,6 +89,27 @@ const dict: Dict = {
   monthly_summary_desc: { en: 'Screenshot and share with dog owners!', he: 'צלם מסך ושתף עם הבעלים!' },
   this_month_walks: { en: "This Month's Walks", he: 'הטיולים החודש' },
 
+  // Reports
+  reports: { en: 'Reports', he: 'דוחות' },
+  period: { en: 'Period', he: 'תקופה' },
+  this_week: { en: 'This Week', he: 'השבוע' },
+  this_month: { en: 'This Month', he: 'החודש' },
+  this_quarter: { en: 'This Quarter', he: 'הרבעון' },
+  this_year: { en: 'This Year', he: 'השנה' },
+  custom_range: { en: 'Custom', he: 'מותאם' },
+  from: { en: 'From', he: 'מתאריך' },
+  to: { en: 'To', he: 'עד תאריך' },
+  pick_start: { en: 'Pick start date', he: 'בחר תאריך התחלה' },
+  pick_end: { en: 'Pick end date', he: 'בחר תאריך סיום' },
+  export_csv: { en: 'Export CSV', he: 'ייצוא CSV' },
+  export_pdf: { en: 'Export PDF', he: 'ייצוא PDF' },
+  report_summary: { en: 'Report Summary', he: 'סיכום הדוח' },
+  avg_walk: { en: 'Avg Walk', he: 'ממוצע טיול' },
+  top_dog: { en: 'Top Dog', he: 'הכלב המוביל' },
+  walks_in_range: { en: 'Walks in Range', he: 'טיולים בטווח' },
+  per_dog_breakdown: { en: 'Per-Dog Breakdown', he: 'פירוט לפי כלב' },
+  no_walks_range: { en: 'No walks in this range', he: 'אין טיולים בטווח זה' },
+
   // Engagement
   high_energy: { en: '⚡ High Energy', he: '⚡ אנרגיה גבוהה' },
   chill_vibes: { en: '😌 Chill Vibes', he: '😌 רגוע' },
