@@ -1,35 +1,54 @@
-## Add Google Sign-In to Dogo
+## Walk Reports with Period Filter and Export
 
-Add a "Continue with Google" button to the Auth page so users can sign up / sign in with their Google account in one click, alongside the existing email + password flow.
+Add a new "Reports" area inside the Stats page (`src/pages/Stats.tsx`) that lets the user pick a time range and view per a specific dog or all dogs together + export the matching walks.
 
-### What changes
+### 1. Period selector
 
-**1. Enable Lovable's managed Google OAuth integration**
-- Run the Configure Social Login setup for Google. This creates `src/integrations/lovable/` (managed file — never edited by hand) and installs `@lovable.dev/cloud-auth-js`.
-- Uses Lovable Cloud's managed Google OAuth credentials by default — no Google Cloud Console setup required from the user. (They can later swap in their own client ID/secret from Cloud → Auth Settings → Google if they want their own branding.)
+A pill-style toggle group right under the page title, with these presets:
 
-**2. Update `src/pages/Auth.tsx`**
-- Add a "Continue with Google" button below the email/password form, separated by a subtle "or" divider.
-- Button uses the Google "G" logo icon and matches the app's glassmorphism + 2xl rounded style.
-- On click, calls:
-  ```ts
-  import { lovable } from "@/integrations/lovable";
-  await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-  ```
-- Handle `result.error` with a toast and `result.redirected` by returning (browser navigates to Google).
-- Works for both sign-in and sign-up — Google flow handles both automatically.
+- This Week
+- This Month (default)
+- This Quarter
+- This Year
+- Custom range (opens two date pickers — start / end — using the shadcn `Calendar` in a `Popover`)
 
-**3. Translations (`src/hooks/useLanguage.tsx`)**
-- Add new keys for both English and Hebrew:
-  - `continue_with_google` → "Continue with Google" / "המשך עם Google"
-  - `or` → "or" / "או"
+Selecting a preset recomputes a `{from, to}` range using `date-fns` (`startOfWeek`, `startOfMonth`, `startOfQuarter`, `startOfYear`, and matching `endOf*`).
 
-**4. RTL support**
-- Divider and button layout already work in RTL via existing `dir` handling — just ensure the Google icon stays on the leading side in both directions.
+### 2. Data refresh
 
-### Technical notes
+Replace the hard-coded "this month" query with a query bound to the selected `{from, to}`:
 
-- No database/schema changes needed. New Google users land in `auth.users` like any other user; existing RLS policies on `dogs` and `walks` keyed off `auth.uid()` work unchanged.
-- No secrets to add — managed credentials are used.
-- The existing `useAuth` hook keeps working: `onAuthStateChange` fires after the OAuth redirect completes and `ProtectedRoute` will let the user into `/`.
-- Custom domain compatible (managed OAuth supports both `*.lovable.app` and custom domains).
+```
+supabase.from('walks').select('*, dogs(name, breed)')
+  .gte('date', from).lte('date', to).order('date', { ascending: false })
+```
+
+All existing widgets on the page (overview tiles, weekly chart still shows last 7 days, per-dog cards, walk list) read from the same `walks` state so they automatically reflect the chosen period. The 7-day chart keeps its fixed window since it's labeled that way; per-dog summaries and the totals tiles update to match the period (and the tile labels switch from "This Month" to dynamic labels like "This Week" / "Q2 2026" / "2026" / "Custom").
+
+### 3. Report view
+
+A new "Report" panel below the period selector showing:
+
+- Range label + total walks, total minutes, total bathroom breaks, average walk length, most-walked dog
+- Per-dog breakdown table (Dog, Walks, Minutes, Breaks)
+- Two action buttons: **Export CSV** and **Export PDF**
+
+### 4. Export
+
+- **CSV**: build a string client-side (header + one row per walk: date, dog name, duration minutes, bathroom break, notes) and trigger download via a `Blob` + temporary `<a>` link. No new dependencies.
+- **PDF**: add `jspdf` + `jspdf-autotable`. Generate a branded one-pager with the range, summary stats, per-dog table, and a walks table. Filename: `dogo-report-{from}_to_{to}.pdf`.
+
+### 5. i18n
+
+Add keys to `src/hooks/useLanguage.tsx` (EN + HE):
+
+- `reports`, `period`, `this_week`, `this_month`, `this_quarter`, `this_year`, `custom_range`, `from`, `to`
+- `export_csv`, `export_pdf`, `report_summary`, `avg_walk`, `top_dog`, `pick_start`, `pick_end`
+
+### Technical details
+
+- Files changed: `src/pages/Stats.tsx`, `src/hooks/useLanguage.tsx`.
+- New dep: `jspdf`, `jspdf-autotable`.
+- Date math: `date-fns` (already in project).
+- Calendar uses `pointer-events-auto` inside `Popover` per project convention.
+- RTL: ToggleGroup and buttons already inherit `dir` from `<html>`; PDF will be generated with English labels for compatibility (Hebrew fonts in jsPDF need extra setup — call this out and default PDF to English text regardless of UI language; CSV will use UTF-8 with BOM so Hebrew notes render in Excel).
