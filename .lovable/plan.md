@@ -1,49 +1,35 @@
+## Add Google Sign-In to Dogo
 
+Add a "Continue with Google" button to the Auth page so users can sign up / sign in with their Google account in one click, alongside the existing email + password flow.
 
-# Dogo — Dog Walking App
+### What changes
 
-## Visual Identity
-- **Colors**: Electric Purple (#8B5CF6) primary, Soft Banana Yellow (#FEF08A) accent, with Mint Green and Electric Orange as secondary highlights
-- **Style**: Glassmorphism cards (semi-transparent bg + backdrop-blur), 2xl rounded corners, high-contrast borders
-- **Typography**: Bold rounded sans-serif headings, large touch-friendly text
-- **Mobile-first**: One-handed use optimized, sticky bottom nav bar
+**1. Enable Lovable's managed Google OAuth integration**
+- Run the Configure Social Login setup for Google. This creates `src/integrations/lovable/` (managed file — never edited by hand) and installs `@lovable.dev/cloud-auth-js`.
+- Uses Lovable Cloud's managed Google OAuth credentials by default — no Google Cloud Console setup required from the user. (They can later swap in their own client ID/secret from Cloud → Auth Settings → Google if they want their own branding.)
 
-## Database (Supabase)
-- **Dogs table**: id, name, breed, image_url, created_at
-- **Walks table**: id, dog_id (FK), start_time, end_time, duration, date, notes, bathroom_break (boolean)
+**2. Update `src/pages/Auth.tsx`**
+- Add a "Continue with Google" button below the email/password form, separated by a subtle "or" divider.
+- Button uses the Google "G" logo icon and matches the app's glassmorphism + 2xl rounded style.
+- On click, calls:
+  ```ts
+  import { lovable } from "@/integrations/lovable";
+  await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+  ```
+- Handle `result.error` with a toast and `result.redirected` by returning (browser navigates to Google).
+- Works for both sign-in and sign-up — Google flow handles both automatically.
 
-## Pages & Features
+**3. Translations (`src/hooks/useLanguage.tsx`)**
+- Add new keys for both English and Hebrew:
+  - `continue_with_google` → "Continue with Google" / "המשך עם Google"
+  - `or` → "or" / "או"
 
-### 1. Dashboard (Home)
-- Large "Start Walk" button — tap to select dog(s), starts a live timer
-- Active walk display with elapsed time, stop button
-- Recent walks list
+**4. RTL support**
+- Divider and button layout already work in RTL via existing `dir` handling — just ensure the Google icon stays on the leading side in both directions.
 
-### 2. Dogs Management
-- List of dogs with photo, name, breed
-- Add/edit dog form with image URL support
+### Technical notes
 
-### 3. Manual Walk Entry
-- Simple form: pick dog, date, start/end time, notes, bathroom break toggle
-
-### 4. Stats & Reports
-- **Weekly bar chart** (Recharts): minutes walked per day over last 7 days
-- **Monthly summary cards per dog**: circular progress ring (days walked vs 7-day goal), walk count, total duration, bathroom break count
-- **Engagement metric**: auto-label based on note keywords (e.g., "High Energy")
-- Total monthly duration and walk count
-
-### 5. Shareable Summary
-- "Generate Summary" button creates an Instagram Story-style vertical card
-- Aggregates monthly highlights: top stats, per-dog summaries, aesthetic layout
-- Designed for screenshot & WhatsApp sharing
-
-### 6. Bottom Navigation
-- 4 tabs: Home (Home icon), Dogs (PawPrint), Stats (BarChart3), Profile (User)
-- Sticky bottom bar, active state highlighting
-
-## Tech Stack
-- React + TypeScript + Tailwind CSS
-- Recharts for charts
-- Lucide React icons
-- Supabase for database + auth (via Lovable Cloud)
-
+- No database/schema changes needed. New Google users land in `auth.users` like any other user; existing RLS policies on `dogs` and `walks` keyed off `auth.uid()` work unchanged.
+- No secrets to add — managed credentials are used.
+- The existing `useAuth` hook keeps working: `onAuthStateChange` fires after the OAuth redirect completes and `ProtectedRoute` will let the user into `/`.
+- Custom domain compatible (managed OAuth supports both `*.lovable.app` and custom domains).

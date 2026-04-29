@@ -115,6 +115,8 @@ const dict: Dict = {
   oops: { en: 'Oops!', he: 'אופס!' },
   have_account: { en: 'Already have an account? Sign in', he: 'יש לך חשבון? התחבר' },
   no_account: { en: "Don't have an account? Sign up", he: 'אין לך חשבון? הירשם' },
+  continue_with_google: { en: 'Continue with Google', he: 'המשך עם Google' },
+  or: { en: 'or', he: 'או' },
 };
 
 interface LanguageContextType {
