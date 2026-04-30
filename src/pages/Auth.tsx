@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
-import { lovable } from '@/integrations/lovable';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -39,16 +39,14 @@ const Auth = () => {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
-      if (result.error) {
-        toast({ title: t('oops'), description: result.error.message, variant: 'destructive' });
-        setLoading(false);
-        return;
-      }
-      if (result.redirected) return;
-      navigate('/');
+      if (error) throw error;
+      if (data?.url) window.location.assign(data.url);
     } catch (err: any) {
       toast({ title: t('oops'), description: err.message, variant: 'destructive' });
       setLoading(false);
