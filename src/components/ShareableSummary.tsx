@@ -1,5 +1,6 @@
 import { PawPrint, Clock, Calendar, Droplets } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface ShareableSummaryProps {
   dogs: Tables<'dogs'>[];
@@ -8,16 +9,17 @@ interface ShareableSummaryProps {
 }
 
 const ShareableSummary = ({ dogs, walks, month }: ShareableSummaryProps) => {
+  const { t } = useLanguage();
   const totalMinutes = walks.reduce((sum, w) => sum + (w.duration || 0), 0) / 60;
   const totalWalks = walks.length;
   const bathroomBreaks = walks.filter(w => w.bathroom_break).length;
 
   const getEngagementLabel = (notes: string[]) => {
     const text = notes.join(' ').toLowerCase();
-    if (/energetic|hyper|excited|running|fast/.test(text)) return '⚡ High Energy';
-    if (/calm|chill|relax|slow|lazy/.test(text)) return '😌 Chill Vibes';
-    if (/happy|joy|fun|play/.test(text)) return '🎉 Happy Month';
-    return '🐾 Steady Walker';
+    if (/energetic|hyper|excited|running|fast|אנרגטי|מתרוצץ/.test(text)) return t('high_energy');
+    if (/calm|chill|relax|slow|lazy|רגוע|איטי/.test(text)) return t('chill_vibes');
+    if (/happy|joy|fun|play|שמח|כיף/.test(text)) return t('happy_month');
+    return t('steady_walker');
   };
 
   return (
@@ -35,7 +37,7 @@ const ShareableSummary = ({ dogs, walks, month }: ShareableSummaryProps) => {
             <PawPrint size={16} />
             <span className="font-black text-sm">DOGO</span>
           </div>
-          <h2 className="text-2xl font-black">{month} Summary</h2>
+          <h2 className="text-2xl font-black">{month} {t('summary')}</h2>
         </div>
 
         {/* Stats Grid */}
@@ -43,17 +45,17 @@ const ShareableSummary = ({ dogs, walks, month }: ShareableSummaryProps) => {
           <div className="bg-white/15 rounded-2xl p-3 text-center backdrop-blur-sm">
             <Clock size={18} className="mx-auto mb-1" />
             <p className="text-2xl font-black">{Math.round(totalMinutes)}</p>
-            <p className="text-[10px] font-bold opacity-80">MINUTES</p>
+            <p className="text-[10px] font-bold opacity-80">{t('pdf_minutes').toUpperCase()}</p>
           </div>
           <div className="bg-white/15 rounded-2xl p-3 text-center backdrop-blur-sm">
             <Calendar size={18} className="mx-auto mb-1" />
             <p className="text-2xl font-black">{totalWalks}</p>
-            <p className="text-[10px] font-bold opacity-80">WALKS</p>
+            <p className="text-[10px] font-bold opacity-80">{t('walks_label')}</p>
           </div>
           <div className="bg-white/15 rounded-2xl p-3 text-center backdrop-blur-sm">
             <Droplets size={18} className="mx-auto mb-1" />
             <p className="text-2xl font-black">{bathroomBreaks}</p>
-            <p className="text-[10px] font-bold opacity-80">BREAKS</p>
+            <p className="text-[10px] font-bold opacity-80">{t('breaks')}</p>
           </div>
         </div>
 
@@ -76,8 +78,8 @@ const ShareableSummary = ({ dogs, walks, month }: ShareableSummaryProps) => {
                 </span>
               </div>
               <div className="flex gap-4 text-sm">
-                <span>{dogWalks.length} walks</span>
-                <span>{Math.round(dogMins)} min</span>
+                <span>{dogWalks.length} {t('walks_word')}</span>
+                <span>{Math.round(dogMins)} {t('minutes_word')}</span>
               </div>
             </div>
           );
@@ -85,7 +87,7 @@ const ShareableSummary = ({ dogs, walks, month }: ShareableSummaryProps) => {
 
         {/* Footer */}
         <div className="text-center mt-4 opacity-60 text-xs font-bold">
-          Generated with Dogo 🐾
+          {t('generated_with')}
         </div>
       </div>
     </div>

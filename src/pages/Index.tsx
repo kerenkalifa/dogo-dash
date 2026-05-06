@@ -21,12 +21,14 @@ import type { Tables } from '@/integrations/supabase/types';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useLanguage } from '@/hooks/useLanguage';
+import { enUS, he } from 'date-fns/locale';
 
 const Index = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const locale = lang === 'he' ? he : enUS;
   const [dogs, setDogs] = useState<Tables<'dogs'>[]>([]);
   const [recentWalks, setRecentWalks] = useState<(Tables<'walks'> & { dogs?: Tables<'dogs'> })[]>([]);
   const [showDogPicker, setShowDogPicker] = useState(false);
@@ -162,7 +164,7 @@ const Index = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm truncate">{(walk as any).dogs?.name || t('unknown')}</p>
-                  <p className="text-xs text-muted-foreground font-semibold">{format(new Date(walk.date), 'MMM d, yyyy')}</p>
+                  <p className="text-xs text-muted-foreground font-semibold">{format(new Date(walk.date), 'MMM d, yyyy', { locale })}</p>
                 </div>
                 <span className="text-sm font-black text-primary">{formatDuration(walk.duration)}</span>
                 <button

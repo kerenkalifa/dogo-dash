@@ -33,6 +33,7 @@ import {
   startOfYear,
   endOfYear,
 } from 'date-fns';
+import { enUS, he } from 'date-fns/locale';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
@@ -43,7 +44,7 @@ type PresetKey = 'week' | 'month' | 'quarter' | 'year' | 'custom';
 const Stats = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [dogs, setDogs] = useState<Tables<'dogs'>[]>([]);
   const [walks, setWalks] = useState<Tables<'walks'>[]>([]);
   const [showSummary, setShowSummary] = useState(false);
@@ -53,26 +54,35 @@ const Stats = () => {
   const [customFrom, setCustomFrom] = useState<Date | undefined>(startOfMonth(new Date()));
   const [customTo, setCustomTo] = useState<Date | undefined>(endOfMonth(new Date()));
 
+  const locale = lang === 'he' ? he : enUS;
+
   const { from, to, label } = useMemo(() => {
     const now = new Date();
     switch (preset) {
       case 'week':
         return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }), label: t('this_week') };
       case 'quarter':
-        return { from: startOfQuarter(now), to: endOfQuarter(now), label: `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}` };
+        return {
+          from: startOfQuarter(now),
+          to: endOfQuarter(now),
+          label:
+            lang === 'he'
+              ? `רבעון ${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`
+              : `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`,
+        };
       case 'year':
         return { from: startOfYear(now), to: endOfYear(now), label: `${now.getFullYear()}` };
       case 'custom':
         return {
           from: customFrom ?? startOfMonth(now),
           to: customTo ?? endOfMonth(now),
-          label: `${format(customFrom ?? now, 'MMM d')} – ${format(customTo ?? now, 'MMM d, yyyy')}`,
+          label: `${format(customFrom ?? now, 'MMM d', { locale })} – ${format(customTo ?? now, 'MMM d, yyyy', { locale })}`,
         };
       case 'month':
       default:
-        return { from: startOfMonth(now), to: endOfMonth(now), label: format(now, 'MMMM yyyy') };
+        return { from: startOfMonth(now), to: endOfMonth(now), label: format(now, 'MMMM yyyy', { locale }) };
     }
-  }, [preset, customFrom, customTo, t]);
+  }, [preset, customFrom, customTo, t, lang, locale]);
 
   const fetchAll = () => {
     if (!user) return;
@@ -97,7 +107,7 @@ const Stats = () => {
     const dateStr = format(day, 'yyyy-MM-dd');
     const dayWalks = walks.filter(w => w.date === dateStr);
     const totalMin = dayWalks.reduce((s, w) => s + (w.duration || 0), 0) / 60;
-    return { day: format(day, 'EEE'), minutes: Math.round(totalMin) };
+    return { day: format(day, 'EEE', { locale }), minutes: Math.round(totalMin) };
   });
 
   const totalMinutes = Math.round(walks.reduce((s, w) => s + (w.duration || 0), 0) / 60);
@@ -155,12 +165,12 @@ const Stats = () => {
   const fileBase = `dogo-report-${format(from, 'yyyy-MM-dd')}_to_${format(to, 'yyyy-MM-dd')}`;
 
   const exportCSV = () => {
-    const headers = ['Date', 'Dog', 'Duration (min)', 'Bathroom Break', 'Notes'];
+    const headers = [t('csv_date'), t('csv_dog'), t('csv_duration_min'), t('csv_bathroom_break'), t('csv_notes')];
     const rows = walks.map((w) => [
       w.date,
       dogNameById(w.dog_id),
       String(Math.round((w.duration || 0) / 60)),
-      w.bathroom_break ? 'Yes' : 'No',
+      w.bathroom_break ? t('yes') : t('no'),
       (w.notes || '').replace(/"/g, '""').replace(/\r?\n/g, ' '),
     ]);
     const csv = [headers, ...rows]
@@ -180,23 +190,23 @@ const Stats = () => {
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(20);
-    doc.text('Dogo Walk Report', 14, 18);
+    doc.text(t('dogo_walk_report'), 14, 18);
     doc.setFontSize(11);
     doc.setTextColor(100);
-    doc.text(`${format(from, 'MMM d, yyyy')} – ${format(to, 'MMM d, yyyy')}`, 14, 26);
+    doc.text(`${format(from, 'MMM d, yyyy', { locale })} – ${format(to, 'MMM d, yyyy', { locale })}`, 14, 26);
 
     doc.setTextColor(0);
     doc.setFontSize(12);
-    doc.text('Summary', 14, 38);
+    doc.text(t('pdf_summary'), 14, 38);
     autoTable(doc, {
       startY: 42,
-      head: [['Total Walks', 'Total Minutes', 'Bathroom Breaks', 'Avg Walk (min)', 'Top Dog']],
+      head: [[t('pdf_total_walks'), t('pdf_total_minutes'), t('pdf_bathroom_breaks'), t('pdf_avg_walk_min'), t('pdf_top_dog')]],
       body: [[
         String(totalWalks),
         String(totalMinutes),
         String(totalBathroom),
         String(avgWalk),
-        topDog ? `${topDog.name} (${topDog.minutes}m)` : '—',
+        topDog ? `${topDog.name} (${topDog.minutes} ${t('minutes_word')})` : '—',
       ]],
       theme: 'grid',
       headStyles: { fillColor: [139, 92, 246] },
@@ -204,10 +214,10 @@ const Stats = () => {
 
     const afterSummaryY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
     doc.setFontSize(12);
-    doc.text('Per-Dog Breakdown', 14, afterSummaryY);
+    doc.text(t('pdf_per_dog_breakdown'), 14, afterSummaryY);
     autoTable(doc, {
       startY: afterSummaryY + 4,
-      head: [['Dog', 'Walks', 'Minutes', 'Breaks']],
+      head: [[t('csv_dog'), t('walks_label'), t('pdf_minutes'), t('pdf_breaks')]],
       body: perDog.map((d) => [d.name, String(d.walks), String(d.minutes), String(d.breaks)]),
       theme: 'striped',
       headStyles: { fillColor: [139, 92, 246] },
@@ -215,15 +225,15 @@ const Stats = () => {
 
     const afterDogsY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
     doc.setFontSize(12);
-    doc.text('Walks', 14, afterDogsY);
+    doc.text(t('pdf_walks_section'), 14, afterDogsY);
     autoTable(doc, {
       startY: afterDogsY + 4,
-      head: [['Date', 'Dog', 'Duration (min)', 'Break', 'Notes']],
+      head: [[t('csv_date'), t('csv_dog'), t('csv_duration_min'), t('pdf_break'), t('csv_notes')]],
       body: walks.map((w) => [
         w.date,
         dogNameById(w.dog_id),
         String(Math.round((w.duration || 0) / 60)),
-        w.bathroom_break ? 'Yes' : 'No',
+        w.bathroom_break ? t('yes') : t('no'),
         w.notes || '',
       ]),
       theme: 'striped',
@@ -266,7 +276,7 @@ const Stats = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="flex-1 rounded-xl font-bold text-xs justify-start gap-2">
                   <CalendarIcon size={14} />
-                  {customFrom ? format(customFrom, 'MMM d, yyyy') : t('pick_start')}
+                  {customFrom ? format(customFrom, 'MMM d, yyyy', { locale }) : t('pick_start')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -277,7 +287,7 @@ const Stats = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="flex-1 rounded-xl font-bold text-xs justify-start gap-2">
                   <CalendarIcon size={14} />
-                  {customTo ? format(customTo, 'MMM d, yyyy') : t('pick_end')}
+                  {customTo ? format(customTo, 'MMM d, yyyy', { locale }) : t('pick_end')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -315,7 +325,9 @@ const Stats = () => {
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div className="bg-muted rounded-xl p-3">
             <p className="text-[10px] font-bold text-muted-foreground uppercase">{t('avg_walk')}</p>
-            <p className="text-lg font-black">{avgWalk}m</p>
+            <p className="text-lg font-black">
+              {avgWalk} {t('minutes_word')}
+            </p>
           </div>
           <div className="bg-muted rounded-xl p-3">
             <p className="text-[10px] font-bold text-muted-foreground uppercase">{t('top_dog')}</p>
@@ -330,7 +342,9 @@ const Stats = () => {
               {perDog.map((d) => (
                 <div key={d.id} className="flex items-center justify-between text-sm font-bold bg-muted/50 rounded-lg px-3 py-1.5">
                   <span className="truncate">{d.name}</span>
-                  <span className="text-muted-foreground text-xs">{d.walks}w · {d.minutes}m · {d.breaks}💩</span>
+                  <span className="text-muted-foreground text-xs">
+                    {d.walks} {t('walks_word')} · {d.minutes} {t('minutes_word')} · {d.breaks}💩
+                  </span>
                 </div>
               ))}
             </div>
@@ -456,7 +470,7 @@ const Stats = () => {
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm truncate">{dogNameById(walk.dog_id)}</p>
                 <p className="text-xs text-muted-foreground font-semibold">
-                  {format(new Date(walk.date), 'MMM d, yyyy')}
+                  {format(new Date(walk.date), 'MMM d, yyyy', { locale })}
                   {walk.bathroom_break && ' · 💩'}
                 </p>
               </div>

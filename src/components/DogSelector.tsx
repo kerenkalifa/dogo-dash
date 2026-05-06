@@ -1,6 +1,7 @@
 import { PawPrint, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Tables } from '@/integrations/supabase/types';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface DogSelectorProps {
   dogs: Tables<'dogs'>[];
@@ -9,12 +10,13 @@ interface DogSelectorProps {
 }
 
 const DogSelector = ({ dogs, selected, onToggle }: DogSelectorProps) => {
+  const { t } = useLanguage();
   if (dogs.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <PawPrint size={40} className="mx-auto mb-2 opacity-50" />
-        <p className="font-bold">No dogs yet!</p>
-        <p className="text-sm">Add a dog first from the Dogs tab.</p>
+        <p className="font-bold">{t('no_dogs')}</p>
+        <p className="text-sm">{t('add_dog_first_desc')}</p>
       </div>
     );
   }

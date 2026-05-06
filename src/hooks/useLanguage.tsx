@@ -12,6 +12,8 @@ const dict: Dict = {
   delete: { en: 'Delete', he: 'מחק' },
   confirm: { en: 'Confirm', he: 'אישור' },
   loading: { en: 'Loading...', he: 'טוען...' },
+  yes: { en: 'Yes', he: 'כן' },
+  no: { en: 'No', he: 'לא' },
 
   // Nav
   nav_home: { en: 'Home', he: 'בית' },
@@ -88,6 +90,10 @@ const dict: Dict = {
   monthly_summary: { en: 'Monthly Summary 📱', he: 'סיכום חודשי 📱' },
   monthly_summary_desc: { en: 'Screenshot and share with dog owners!', he: 'צלם מסך ושתף עם הבעלים!' },
   this_month_walks: { en: "This Month's Walks", he: 'הטיולים החודש' },
+  summary: { en: 'Summary', he: 'סיכום' },
+  minutes_word: { en: 'min', he: 'דק׳' },
+  walks_word: { en: 'walks', he: 'טיולים' },
+  generated_with: { en: 'Generated with Dogo 🐾', he: 'נוצר עם Dogo 🐾' },
 
   // Reports
   reports: { en: 'Reports', he: 'דוחות' },
@@ -109,6 +115,23 @@ const dict: Dict = {
   walks_in_range: { en: 'Walks in Range', he: 'טיולים בטווח' },
   per_dog_breakdown: { en: 'Per-Dog Breakdown', he: 'פירוט לפי כלב' },
   no_walks_range: { en: 'No walks in this range', he: 'אין טיולים בטווח זה' },
+  dogo_walk_report: { en: 'Dogo Walk Report', he: 'דוח טיולים - Dogo' },
+  pdf_summary: { en: 'Summary', he: 'סיכום' },
+  pdf_per_dog_breakdown: { en: 'Per-Dog Breakdown', he: 'פירוט לפי כלב' },
+  pdf_walks_section: { en: 'Walks', he: 'טיולים' },
+  csv_date: { en: 'Date', he: 'תאריך' },
+  csv_dog: { en: 'Dog', he: 'כלב' },
+  csv_duration_min: { en: 'Duration (min)', he: 'משך (דקות)' },
+  csv_bathroom_break: { en: 'Bathroom Break', he: 'הפסקת שירותים' },
+  csv_notes: { en: 'Notes', he: 'הערות' },
+  pdf_total_walks: { en: 'Total Walks', he: 'סה״כ טיולים' },
+  pdf_total_minutes: { en: 'Total Minutes', he: 'סה״כ דקות' },
+  pdf_bathroom_breaks: { en: 'Bathroom Breaks', he: 'הפסקות שירותים' },
+  pdf_avg_walk_min: { en: 'Avg Walk (min)', he: 'ממוצע טיול (דק׳)' },
+  pdf_top_dog: { en: 'Top Dog', he: 'הכלב המוביל' },
+  pdf_minutes: { en: 'Minutes', he: 'דקות' },
+  pdf_breaks: { en: 'Breaks', he: 'הפסקות' },
+  pdf_break: { en: 'Break', he: 'הפסקה' },
 
   // Engagement
   high_energy: { en: '⚡ High Energy', he: '⚡ אנרגיה גבוהה' },
@@ -124,6 +147,15 @@ const dict: Dict = {
   language: { en: 'Language', he: 'שפה' },
   english: { en: 'English', he: 'אנגלית' },
   hebrew: { en: 'Hebrew', he: 'עברית' },
+  toggle_sidebar: { en: 'Toggle Sidebar', he: 'פתיחה/סגירה של סרגל צד' },
+  pagination: { en: 'Pagination', he: 'דפדוף' },
+  go_to_previous_page: { en: 'Go to previous page', he: 'עמוד קודם' },
+  go_to_next_page: { en: 'Go to next page', he: 'עמוד הבא' },
+  previous: { en: 'Previous', he: 'הקודם' },
+  next: { en: 'Next', he: 'הבא' },
+  more_pages: { en: 'More pages', he: 'עוד עמודים' },
+  previous_slide: { en: 'Previous slide', he: 'שקופית קודמת' },
+  next_slide: { en: 'Next slide', he: 'שקופית הבאה' },
 
   // Auth
   walk_tracking_pro_dogs: { en: 'Walk tracking for pros 🐕', he: 'מעקב טיולים למקצוענים 🐕' },
@@ -138,6 +170,10 @@ const dict: Dict = {
   no_account: { en: "Don't have an account? Sign up", he: 'אין לך חשבון? הירשם' },
   continue_with_google: { en: 'Continue with Google', he: 'המשך עם Google' },
   or: { en: 'or', he: 'או' },
+
+  // Not found
+  not_found_oops: { en: 'Oops! Page not found', he: 'אופס! העמוד לא נמצא' },
+  return_home: { en: 'Return to Home', he: 'חזרה לדף הבית' },
 };
 
 interface LanguageContextType {
