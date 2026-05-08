@@ -46,6 +46,23 @@ const dict: Dict = {
   // Walk Timer
   walk_in_progress: { en: 'Walk in Progress', he: 'טיול מתבצע' },
   stop_walk: { en: 'Stop Walk', he: 'עצור טיול' },
+  elapsed: { en: 'Elapsed', he: 'חלף' },
+  remaining: { en: 'Remaining', he: 'נשאר' },
+  add_5_min: { en: '+5 min', he: '+5 דק׳' },
+  walking_now: { en: 'Walking now', he: 'מטיילים' },
+  pick_duration: { en: 'How long?', he: 'כמה זמן?' },
+  custom_min: { en: 'Custom', he: 'מותאם' },
+  minutes_short: { en: 'min', he: 'דק׳' },
+  notification_sound: { en: 'Alert sound', he: 'צליל התראה' },
+  preview: { en: 'Preview', he: 'נגן' },
+  walk_over_title: { en: 'Time’s up! ⏰', he: 'הזמן נגמר! ⏰' },
+  walk_over_body: { en: 'Walk time is over! Time to bring the dogs home 🐶', he: 'זמן הטיול נגמר! זמן להחזיר את הכלבים הביתה 🐶' },
+  keep_app_open_hint: { en: 'For reliable alerts when your phone is locked, keep Dogo open.', he: 'להתראות אמינות במצב נעול, השאר את Dogo פתוח.' },
+  sound_chime: { en: 'Chime', he: 'פעמון רך' },
+  sound_bell: { en: 'Bell', he: 'פעמון' },
+  sound_alarm: { en: 'Soft Alarm', he: 'אזעקה רכה' },
+  sound_bark: { en: 'Dog Bark', he: 'נביחה' },
+  enable_notifications: { en: 'Enable notifications', he: 'אפשר התראות' },
 
   // Dogs
   my_dogs: { en: 'My Dogs 🐕', he: 'הכלבים שלי 🐕' },
