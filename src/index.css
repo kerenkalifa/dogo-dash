@@ -48,6 +48,9 @@
     --orange: 24 100% 55%;
     --orange-foreground: 0 0% 100%;
 
+    --warning: 32 95% 55%;
+    --warning-foreground: 30 60% 12%;
+
     --glass-bg: 270 30% 97% / 0.6;
     --glass-border: 270 30% 90% / 0.5;
   }
