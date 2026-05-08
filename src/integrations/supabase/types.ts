@@ -44,37 +44,46 @@ export type Database = {
       walks: {
         Row: {
           bathroom_break: boolean | null
+          completed_on_time: boolean | null
           created_at: string
           date: string
           dog_id: string
+          dogs_count: number | null
           duration: number | null
           end_time: string | null
           id: string
           notes: string | null
+          planned_duration: number | null
           start_time: string | null
           user_id: string
         }
         Insert: {
           bathroom_break?: boolean | null
+          completed_on_time?: boolean | null
           created_at?: string
           date?: string
           dog_id: string
+          dogs_count?: number | null
           duration?: number | null
           end_time?: string | null
           id?: string
           notes?: string | null
+          planned_duration?: number | null
           start_time?: string | null
           user_id: string
         }
         Update: {
           bathroom_break?: boolean | null
+          completed_on_time?: boolean | null
           created_at?: string
           date?: string
           dog_id?: string
+          dogs_count?: number | null
           duration?: number | null
           end_time?: string | null
           id?: string
           notes?: string | null
+          planned_duration?: number | null
           start_time?: string | null
           user_id?: string
         }

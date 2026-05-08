@@ -1,0 +1,4 @@
+ALTER TABLE public.walks
+  ADD COLUMN IF NOT EXISTS planned_duration INTEGER,
+  ADD COLUMN IF NOT EXISTS completed_on_time BOOLEAN,
+  ADD COLUMN IF NOT EXISTS dogs_count INTEGER;
