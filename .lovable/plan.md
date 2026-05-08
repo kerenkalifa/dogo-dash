@@ -1,54 +1,102 @@
-## Walk Reports with Period Filter and Export
+## Multi-dog walk timer with countdown
 
-Add a new "Reports" area inside the Stats page (`src/pages/Stats.tsx`) that lets the user pick a time range and view per a specific dog or all dogs together + export the matching walks.
+On a new feature branch, upgrade the home screen "Start Walk" flow with countdown duration selection, an animated dual-timer walk session, sound/vibration/popup alerts, and richer walk history.
 
-### 1. Period selector
+### 1. Pre-walk setup (Dog Picker dialog)
 
-A pill-style toggle group right under the page title, with these presets:
+Extend the existing dialog (`src/pages/Index.tsx` + `DogSelector.tsx`) with two new sections under the dog grid:
 
-- This Week
-- This Month (default)
-- This Quarter
-- This Year
-- Custom range (opens two date pickers — start / end — using the shadcn `Calendar` in a `Popover`)
+- **Duration chips**: 15 / 30 / 45 / 60 min — pill buttons in the purple/yellow palette, single-select, one chip preselected (30 min).
+- **Custom minutes**: a small numeric input that activates a "Custom" chip when filled.
+- **Notification sound picker**: a row of 3–4 pill chips (Chime, Bell, Soft Alarm, Dog Bark) with a small play button on each for preview. Selection persists in `localStorage` so the user only picks once.
 
-Selecting a preset recomputes a `{from, to}` range using `date-fns` (`startOfWeek`, `startOfMonth`, `startOfQuarter`, `startOfYear`, and matching `endOf*`).
+The "Let's go" button stays disabled until at least one dog AND a valid duration are chosen.
 
-### 2. Data refresh
+### 2. Active walk session (new `WalkTimer.tsx`)
 
-Replace the hard-coded "this month" query with a query bound to the selected `{from, to}`:
+Two stacked counters inside the existing glass card:
 
-```
-supabase.from('walks').select('*, dogs(name, breed)')
-  .gte('date', from).lte('date', to).order('date', { ascending: false })
-```
+- **Elapsed time** (existing behavior, mm:ss).
+- **Animated countdown ring** — a circular SVG progress ring around the remaining mm:ss, draining from full to empty. Uses `--primary` (purple) normally.
 
-All existing widgets on the page (overview tiles, weekly chart still shows last 7 days, per-dog cards, walk list) read from the same `walks` state so they automatically reflect the chosen period. The 7-day chart keeps its fixed window since it's labeled that way; per-dog summaries and the totals tiles update to match the period (and the tile labels switch from "This Month" to dynamic labels like "This Week" / "Q2 2026" / "2026" / "Custom").
+Below the ring: a horizontal scroll row of small rounded avatar chips for each active dog (name + 🐕 emoji), reusing the dog card styling.
 
-### 3. Report view
+Buttons: **Stop Walk** (existing) + **+5 min** to extend the countdown if needed.
 
-A new "Report" panel below the period selector showing:
+**Warning state (< 5 min remaining):**
 
-- Range label + total walks, total minutes, total bathroom breaks, average walk length, most-walked dog
-- Per-dog breakdown table (Dog, Walks, Minutes, Breaks)
-- Two action buttons: **Export CSV** and **Export PDF**
+- Ring + digits switch to a warning color (warm amber, new `--warning` token in `index.css`).
+- Subtle pulse animation on the ring (reuse `animate-pulse-slow` + a new `animate-ring-pulse` keyframe in `tailwind.config.ts`).
 
-### 4. Export
+### 3. Countdown completion
 
-- **CSV**: build a string client-side (header + one row per walk: date, dog name, duration minutes, bathroom break, notes) and trigger download via a `Blob` + temporary `<a>` link. No new dependencies.
-- **PDF**: add `jspdf` + `jspdf-autotable`. Generate a branded one-pager with the range, summary stats, per-dog table, and a walks table. Filename: `dogo-report-{from}_to_{to}.pdf`.
+When remaining hits 0:
 
-### 5. i18n
+- Play the chosen sound on loop (max ~10s) via an `<audio>` element.
+- `navigator.vibrate([400, 200, 400, 200, 400])` if supported.
+- Show a fullscreen `Dialog` (modal) with the message  
+**"Walk time is over! Time to bring the dogs home 🐶"**  
+and two buttons: **Stop Walk** (ends + saves) and **Add 5 minutes** (dismisses + extends).
+- If the browser tab supports it, also fire a Web Notification (`Notification.requestPermission()` is requested the first time the user starts a countdown). This makes the alert visible when the tab is backgrounded on desktop and Android Chrome.
 
-Add keys to `src/hooks/useLanguage.tsx` (EN + HE):
+### 4. Background behavior (best-effort web)
 
-- `reports`, `period`, `this_week`, `this_month`, `this_quarter`, `this_year`, `custom_range`, `from`, `to`
-- `export_csv`, `export_pdf`, `report_summary`, `avg_walk`, `top_dog`, `pick_start`, `pick_end`
+- Use **timestamp math** (`endTime = startTime + duration`) instead of an interval counter so the countdown is accurate after the tab is suspended.
+- On `visibilitychange`, recompute remaining time; if the deadline already passed while hidden, fire the alert immediately on return.
+- Request a `navigator.wakeLock.request('screen')` while the walk is active (released on stop) to keep the screen alive when the tab is foreground.
+- Honest user-facing note in a small "i" tooltip on the picker: *"For reliable alerts when your phone is locked, keep Dogo open in the foreground."* iOS Safari cannot play sound or fire timers in the background from a web app — this limitation is acknowledged.
+
+### 5. Persistence
+
+Active walk state (start time, duration, dog ids, sound id) is mirrored to `localStorage` under `dogo:active-walk`. On `Index` mount, if a non-expired walk exists, it auto-restores. If it expired while away, the completion alert fires on load.
+
+### 6. Walk history
+
+Add three columns to the `walks` table via a migration:
+
+- `planned_duration` (integer, seconds, nullable)
+- `completed_on_time` (boolean, nullable) — true if user stopped after countdown reached zero, false if stopped early
+- `dogs_count` (integer, nullable) — convenience for multi-dog rows
+
+Each dog still gets its own row (preserves the existing per-dog stats), but all rows from one session share `start_time` so they group naturally. Existing screens keep working; Stats/History pages are not changed in this task.
+
+### 7. Sound assets
+
+Add four short MP3s (~1–2s each, royalty-free) to `public/sounds/`:
+`chime.mp3`, `bell.mp3`, `soft-alarm.mp3`, `dog-bark.mp3`. Bundled, no network needed at playback time.
+
+### 8. Styling
+
+Stays in the current Nunito + glassmorphism + 2xl rounded system. New tokens added to `index.css`:
+
+- `--warning: 38 95% 55%` (amber)
+- `--warning-foreground: 30 40% 15%`
+
+No third-party UI libs added; ring is a 12-line SVG.
 
 ### Technical details
 
-- Files changed: `src/pages/Stats.tsx`, `src/hooks/useLanguage.tsx`.
-- New dep: `jspdf`, `jspdf-autotable`.
-- Date math: `date-fns` (already in project).
-- Calendar uses `pointer-events-auto` inside `Popover` per project convention.
-- RTL: ToggleGroup and buttons already inherit `dir` from `<html>`; PDF will be generated with English labels for compatibility (Hebrew fonts in jsPDF need extra setup — call this out and default PDF to English text regardless of UI language; CSV will use UTF-8 with BOM so Hebrew notes render in Excel).
+**Files created**
+
+- `public/sounds/{chime,bell,soft-alarm,dog-bark}.mp3`
+- `src/components/CountdownRing.tsx` — pure SVG progress ring
+- `src/components/SoundPicker.tsx` — chip row with preview
+- `src/components/WalkOverDialog.tsx` — fullscreen completion modal
+- `src/hooks/useCountdown.ts` — timestamp-based countdown + visibility handling
+- `src/hooks/useActiveWalkPersistence.ts` — localStorage round-trip
+- `supabase/migrations/<ts>_walks_countdown.sql` — adds 3 columns
+
+**Files edited**
+
+- `src/pages/Index.tsx` — picker UI for duration + sound, pass new props to `WalkTimer`, persistence wiring, save new fields on stop
+- `src/components/WalkTimer.tsx` — accept `plannedDurationSec` + `soundId`, render countdown ring, dog chips, warning state, +5 min, fire completion
+- `src/components/DogSelector.tsx` — unchanged grid; just consumed
+- `src/index.css` — warning color tokens
+- `tailwind.config.ts` — `ring-pulse` keyframe + `warning` color mapping
+- `src/hooks/useLanguage.ts` (or translations file) — new strings: `pick_duration`, `custom_minutes`, `notification_sound`, `time_remaining`, `add_5_min`, `walk_over_title`, `walk_over_body`, `keep_app_open_hint`
+
+**Out of scope** (called out per your earlier choice of "best-effort web only")
+
+- Server-pushed notifications when the app is fully closed
+- Native iOS background alerts (would require Capacitor)
+- Editing Stats / History UI to display the new columns (data is saved; UI surfacing can be a follow-up)
