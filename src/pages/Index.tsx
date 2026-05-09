@@ -134,6 +134,12 @@ const Index = () => {
     };
     setActiveWalk(next);
     localStorage.setItem(ACTIVE_KEY, JSON.stringify(next));
+    await scheduleWalkOverNotification({
+      fireAt: new Date(Date.now() + next.plannedDurationSec * 1000),
+      title: t('walk_over_title'),
+      body: t('walk_over_body'),
+      soundId: next.soundId,
+    });
   };
 
   const handleStopWalk = async (durationSeconds: number, completedOnTime: boolean) => {
