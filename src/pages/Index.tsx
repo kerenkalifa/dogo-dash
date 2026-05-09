@@ -109,11 +109,7 @@ const Index = () => {
   };
 
   const requestNotifPermission = async () => {
-    try {
-      if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
-      }
-    } catch { /* ignore */ }
+    await ensureNotifPermission();
   };
 
   const effectiveDurationMin = useMemo(() => {
