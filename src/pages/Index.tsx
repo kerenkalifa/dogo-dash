@@ -26,6 +26,11 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { enUS, he } from 'date-fns/locale';
 import { SoundId } from '@/lib/sounds';
 import { cn } from '@/lib/utils';
+import {
+  ensureNotifPermission,
+  scheduleWalkOverNotification,
+  cancelWalkOverNotification,
+} from '@/lib/nativeNotifications';
 
 const DURATION_PRESETS = [15, 30, 45, 60];
 const ACTIVE_KEY = 'dogo:active-walk';
