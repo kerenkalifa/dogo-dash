@@ -26,6 +26,11 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { enUS, he } from 'date-fns/locale';
 import { SoundId } from '@/lib/sounds';
 import { cn } from '@/lib/utils';
+import {
+  ensureNotifPermission,
+  scheduleWalkOverNotification,
+  cancelWalkOverNotification,
+} from '@/lib/nativeNotifications';
 
 const DURATION_PRESETS = [15, 30, 45, 60];
 const ACTIVE_KEY = 'dogo:active-walk';
@@ -66,6 +71,15 @@ const Index = () => {
       const parsed = JSON.parse(raw) as ActiveWalk;
       if (parsed?.startTime && parsed?.plannedDurationSec) {
         setActiveWalk(parsed);
+        const fireAt = new Date(new Date(parsed.startTime).getTime() + parsed.plannedDurationSec * 1000);
+        if (fireAt.getTime() > Date.now()) {
+          void scheduleWalkOverNotification({
+            fireAt,
+            title: t('walk_over_title'),
+            body: t('walk_over_body'),
+            soundId: parsed.soundId,
+          });
+        }
       }
     } catch { /* ignore */ }
   }, []);
@@ -104,11 +118,7 @@ const Index = () => {
   };
 
   const requestNotifPermission = async () => {
-    try {
-      if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
-      }
-    } catch { /* ignore */ }
+    await ensureNotifPermission();
   };
 
   const effectiveDurationMin = useMemo(() => {
@@ -133,6 +143,12 @@ const Index = () => {
     };
     setActiveWalk(next);
     localStorage.setItem(ACTIVE_KEY, JSON.stringify(next));
+    await scheduleWalkOverNotification({
+      fireAt: new Date(Date.now() + next.plannedDurationSec * 1000),
+      title: t('walk_over_title'),
+      body: t('walk_over_body'),
+      soundId: next.soundId,
+    });
   };
 
   const handleStopWalk = async (durationSeconds: number, completedOnTime: boolean) => {
@@ -156,6 +172,7 @@ const Index = () => {
 
     setActiveWalk(null);
     localStorage.removeItem(ACTIVE_KEY);
+    await cancelWalkOverNotification();
     toast({ title: t('walk_saved'), description: `${Math.floor(durationSeconds / 60)} ${t('min_walk_logged')}` });
     fetchRecentWalks();
   };
@@ -168,6 +185,13 @@ const Index = () => {
     };
     setActiveWalk(next);
     localStorage.setItem(ACTIVE_KEY, JSON.stringify(next));
+    const fireAt = new Date(new Date(next.startTime).getTime() + next.plannedDurationSec * 1000);
+    void scheduleWalkOverNotification({
+      fireAt,
+      title: t('walk_over_title'),
+      body: t('walk_over_body'),
+      soundId: next.soundId,
+    });
   };
 
   const confirmDeleteWalk = async () => {
