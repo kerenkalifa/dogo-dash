@@ -163,6 +163,7 @@ const Index = () => {
 
     setActiveWalk(null);
     localStorage.removeItem(ACTIVE_KEY);
+    await cancelWalkOverNotification();
     toast({ title: t('walk_saved'), description: `${Math.floor(durationSeconds / 60)} ${t('min_walk_logged')}` });
     fetchRecentWalks();
   };
@@ -175,6 +176,13 @@ const Index = () => {
     };
     setActiveWalk(next);
     localStorage.setItem(ACTIVE_KEY, JSON.stringify(next));
+    const fireAt = new Date(new Date(next.startTime).getTime() + next.plannedDurationSec * 1000);
+    void scheduleWalkOverNotification({
+      fireAt,
+      title: t('walk_over_title'),
+      body: t('walk_over_body'),
+      soundId: next.soundId,
+    });
   };
 
   const confirmDeleteWalk = async () => {
