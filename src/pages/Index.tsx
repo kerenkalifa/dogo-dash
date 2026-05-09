@@ -71,6 +71,15 @@ const Index = () => {
       const parsed = JSON.parse(raw) as ActiveWalk;
       if (parsed?.startTime && parsed?.plannedDurationSec) {
         setActiveWalk(parsed);
+        const fireAt = new Date(new Date(parsed.startTime).getTime() + parsed.plannedDurationSec * 1000);
+        if (fireAt.getTime() > Date.now()) {
+          void scheduleWalkOverNotification({
+            fireAt,
+            title: t('walk_over_title'),
+            body: t('walk_over_body'),
+            soundId: parsed.soundId,
+          });
+        }
       }
     } catch { /* ignore */ }
   }, []);
