@@ -63,7 +63,6 @@ const Index = () => {
     return stored ?? 'chime';
   });
 
-  // Restore active walk from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem(ACTIVE_KEY);
@@ -221,47 +220,49 @@ const Index = () => {
   );
 
   return (
-    <div className="pb-24 px-4 max-w-lg mx-auto overflow-y-auto h-full" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-black text-foreground">{t('home_title')}</h1>
-          <p className="text-sm font-bold text-muted-foreground">{t('home_subtitle')}</p>
+    <div className="h-full flex flex-col max-w-lg mx-auto">
+
+      {/* ── Sticky top section ── */}
+      <div className="px-4 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-black text-foreground">{t('home_title')}</h1>
+            <p className="text-sm font-bold text-muted-foreground">{t('home_subtitle')}</p>
+          </div>
+          <button
+            onClick={() => navigate('/manual-entry')}
+            className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+          >
+            <Plus size={20} className="text-secondary-foreground" />
+          </button>
         </div>
-        <button
-          onClick={() => navigate('/manual-entry')}
-          className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-        >
-          <Plus size={20} className="text-secondary-foreground" />
-        </button>
+
+        {activeWalk ? (
+          <WalkTimer
+            startTime={new Date(activeWalk.startTime)}
+            plannedDurationSec={activeWalk.plannedDurationSec}
+            soundId={activeWalk.soundId}
+            dogs={activeDogs}
+            onStop={handleStopWalk}
+            onExtend={handleExtendWalk}
+          />
+        ) : (
+          <button
+            onClick={handleStartWalk}
+            className="w-full glass rounded-2xl p-8 flex flex-col items-center gap-3 border-2 border-primary/30 hover:border-primary/60 active:scale-[0.98] transition-all duration-200 group mb-6"
+          >
+            <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 group-hover:scale-110 transition-transform">
+              <Play size={36} className="text-primary-foreground ml-1" />
+            </div>
+            <span className="text-xl font-black text-foreground">{t('start_walk')}</span>
+            <span className="text-sm text-muted-foreground font-bold">{t('start_walk_hint')}</span>
+          </button>
+        )}
       </div>
 
-      {/* Active Walk or Start Button */}
-      {activeWalk ? (
-        <WalkTimer
-          startTime={new Date(activeWalk.startTime)}
-          plannedDurationSec={activeWalk.plannedDurationSec}
-          soundId={activeWalk.soundId}
-          dogs={activeDogs}
-          onStop={handleStopWalk}
-          onExtend={handleExtendWalk}
-        />
-      ) : (
-        <button
-          onClick={handleStartWalk}
-          className="w-full glass rounded-2xl p-8 flex flex-col items-center gap-3 border-2 border-primary/30 hover:border-primary/60 active:scale-[0.98] transition-all duration-200 group mb-6"
-        >
-          <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 group-hover:scale-110 transition-transform">
-            <Play size={36} className="text-primary-foreground ml-1" />
-          </div>
-          <span className="text-xl font-black text-foreground">{t('start_walk')}</span>
-          <span className="text-sm text-muted-foreground font-bold">{t('start_walk_hint')}</span>
-        </button>
-      )}
-
-      {/* Recent Walks */}
-      <div className="mt-6">
-        <h2 className="text-lg font-black text-foreground mb-3">{t('recent_walks')}</h2>
+      {/* ── Scrollable recent walks ── */}
+      <div className="flex-1 overflow-y-auto px-4 pb-24">
+        <h2 className="text-lg font-black text-foreground mb-3 mt-6">{t('recent_walks')}</h2>
         {recentWalks.length === 0 ? (
           <div className="glass rounded-2xl p-6 text-center text-muted-foreground">
             <Clock size={30} className="mx-auto mb-2 opacity-50" />
@@ -293,7 +294,7 @@ const Index = () => {
         )}
       </div>
 
-      {/* Dog Picker Dialog */}
+      {/* ── Dog Picker Dialog ── */}
       <Dialog open={showDogPicker} onOpenChange={setShowDogPicker}>
         <DialogContent className="rounded-3xl max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -302,7 +303,6 @@ const Index = () => {
           </DialogHeader>
           <DogSelector dogs={dogs} selected={selectedDogs} onToggle={toggleDog} />
 
-          {/* Duration */}
           <div className="mt-1">
             <h3 className="text-sm font-black text-foreground mb-2">{t('pick_duration')}</h3>
             <div className="flex flex-wrap gap-2">
@@ -347,7 +347,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Sound */}
           <div className="mt-3">
             <div className="flex items-center gap-2 mb-2">
               <Bell size={14} className="text-primary" />
@@ -369,7 +368,7 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation */}
+      {/* ── Delete confirmation ── */}
       <AlertDialog open={!!walkToDelete} onOpenChange={(open) => !open && setWalkToDelete(null)}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
