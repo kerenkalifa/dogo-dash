@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,8 @@ import Profile from "./pages/Profile";
 import ManualEntry from "./pages/ManualEntry";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { App as CapacitorApp } from "@capacitor/app";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +30,7 @@ const AppRoutes = () => {
   const { user } = useAuth();
 
   return (
-    <>
+    <div style={{ paddingTop: 'env(safe-area-inset-top)' }} className="h-full flex flex-col">
       <Routes>
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -38,24 +41,44 @@ const AppRoutes = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <BottomNav />}
-    </>
+    </div>
   );
 };
+const App = () => {
+  useEffect(() => {
+  CapacitorApp.addListener("appUrlOpen", async ({ url }) => {
+    if (url.includes("login-callback")) {
+      const hashPart = url.split('#')[1];
+      if (hashPart) {
+        const params = new URLSearchParams(hashPart);
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          window.location.reload();
+        }
+      }
+    }
+  });
+}, []);
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <LanguageProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </AuthProvider>
-      </LanguageProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
-
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <LanguageProvider>
+          <AuthProvider>
+            <HashRouter>
+              <AppRoutes />
+            </HashRouter>
+          </AuthProvider>
+        </LanguageProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 export default App;

@@ -37,21 +37,24 @@ const Auth = () => {
   };
 
   const handleGoogle = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-      if (error) throw error;
-      if (data?.url) window.location.assign(data.url);
-    } catch (err: any) {
-      toast({ title: t('oops'), description: err.message, variant: 'destructive' });
-      setLoading(false);
+  setLoading(true);
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'dogwalker://login-callback',
+        skipBrowserRedirect: true,
+      },
+    });
+    if (error) throw error;
+    if (data?.url) {
+      window.open(data.url, '_system'); // opens real Safari, not SFSafariViewController
     }
-  };
+  } catch (err: any) {
+    toast({ title: t('oops'), description: err.message, variant: 'destructive' });
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">

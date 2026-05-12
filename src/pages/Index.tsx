@@ -135,6 +135,7 @@ const Index = () => {
     if (effectiveDurationMin <= 0) return;
     await requestNotifPermission();
     setShowDogPicker(false);
+    setCustomMin('');
     const next: ActiveWalk = {
       startTime: new Date().toISOString(),
       dogIds: selectedDogs,
@@ -220,7 +221,7 @@ const Index = () => {
   );
 
   return (
-    <div className="pb-24 px-4 pt-6 max-w-lg mx-auto">
+    <div className="pb-24 px-4 max-w-lg mx-auto overflow-y-auto h-full" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

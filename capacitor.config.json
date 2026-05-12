@@ -2,11 +2,10 @@
   "appId": "com.keren.dogwalker",
   "appName": "dogo-dogwalktracker",
   "webDir": "dist",
-  "server": {
-    "url": "https://5197382d-3fb6-4970-9c0b-75794b459ad5.lovableproject.com?forceHideBadge=true",
-    "cleartext": true
-  },
   "plugins": {
+    "App": {
+      "appUrlOpen": true
+    },
     "LocalNotifications": {
       "smallIcon": "ic_stat_icon_config_sample",
       "iconColor": "#8B5CF6"
