@@ -220,7 +220,7 @@ const Index = () => {
   );
 
   return (
-    <div className="h-full flex flex-col max-w-lg mx-auto">
+    <div className="h-full flex flex-col max-w-xl mx-auto w-full">
 
       {/* ── Sticky top section ── */}
       <div className="px-4 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
@@ -249,13 +249,13 @@ const Index = () => {
         ) : (
           <button
             onClick={handleStartWalk}
-            className="w-full glass rounded-2xl p-8 flex flex-col items-center gap-3 border-2 border-primary/30 hover:border-primary/60 active:scale-[0.98] transition-all duration-200 group mb-6"
-          >
-            <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 group-hover:scale-110 transition-transform">
-              <Play size={36} className="text-primary-foreground ml-1" />
-            </div>
-            <span className="text-xl font-black text-foreground">{t('start_walk')}</span>
-            <span className="text-sm text-muted-foreground font-bold">{t('start_walk_hint')}</span>
+  className="w-full glass rounded-2xl p-5 flex flex-col items-center gap-2 border-2 border-primary/30 hover:border-primary/60 active:scale-[0.98] transition-all duration-200 group mb-4"
+>
+  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 group-hover:scale-110 transition-transform">
+    <Play size={24} className="text-primary-foreground ml-1" />
+  </div>
+  <span className="text-lg font-black text-foreground">{t('start_walk')}</span>
+  <span className="text-sm text-muted-foreground font-bold">{t('start_walk_hint')}</span>
           </button>
         )}
       </div>
@@ -277,7 +277,7 @@ const Index = () => {
                   <PawPrint size={18} className="text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate">{(walk as any).dogs?.name || t('unknown')}</p>
+                  <p className="font-bold text-base truncate">{(walk as any).dogs?.name || t('unknown')}</p>
                   <p className="text-xs text-muted-foreground font-semibold">{format(new Date(walk.date), 'MMM d, yyyy', { locale })}</p>
                 </div>
                 <span className="text-sm font-black text-primary">{formatDuration(walk.duration)}</span>
